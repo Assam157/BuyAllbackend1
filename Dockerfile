@@ -1,23 +1,27 @@
 # Use an official PHP image as the base image
+ # Use a PHP image as the base image (if this doesn't work, we'll install PHP manually)
 FROM php:8.1-cli
 
-# Install system dependencies, curl, unzip, and other libraries needed by Composer
+# Install curl, unzip, and other required dependencies for Composer
 RUN apt-get update && apt-get install -y curl unzip libpng-dev
 
-# Install Composer
+# Install PHP (if not already installed)
+RUN apt-get install -y php-cli
+
+# Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Set the working directory inside the container
 WORKDIR /var/www/html
 
-# Copy all files from the current directory to the working directory in the container
+# Copy the application files to the container
 COPY . .
 
 # Install PHP dependencies using Composer
-RUN composer install --no-dev --optimize-autoloader
+RUN /usr/local/bin/composer install --no-dev --optimize-autoloader
 
-# Expose port 8080 to be accessible from outside the container
+# Expose the port that Render provides
 EXPOSE 8080
 
-# Start PHP's built-in server and bind it to the dynamic $PORT environment variable
+# Start the PHP built-in server
 CMD ["php", "-S", "0.0.0.0:$PORT", "-t", "public"]
