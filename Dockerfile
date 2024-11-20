@@ -1,12 +1,12 @@
-# Use an official PHP image as the base image
- # Use a PHP image as the base image (if this doesn't work, we'll install PHP manually)
+ # Use PHP 8.1 CLI as the base image
 FROM php:8.1-cli
 
-# Install curl, unzip, and other required dependencies for Composer
-RUN apt-get update && apt-get install -y curl unzip libpng-dev
+# Install system dependencies, curl, unzip, and libraries required by Composer
+RUN apt-get update && apt-get install -y curl unzip libpng-dev libjpeg-dev libfreetype6-dev
 
-# Install PHP (if not already installed)
-RUN apt-get install -y php-cli
+# Install PHP extensions required for Laravel (e.g., GD for image processing, etc.)
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install gd
 
 # Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -14,14 +14,14 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Set the working directory inside the container
 WORKDIR /var/www/html
 
-# Copy the application files to the container
+# Copy application files into the container
 COPY . .
 
-# Install PHP dependencies using Composer
+# Install Laravel dependencies using Composer
 RUN /usr/local/bin/composer install --no-dev --optimize-autoloader
 
-# Expose the port that Render provides
+# Expose the port to be used by Laravel
 EXPOSE 8080
 
-# Start the PHP built-in server
-CMD ["php", "-S", "0.0.0.0:$PORT", "-t", "public"]
+# Use artisan to start the Laravel application on the correct port
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=$PORT"]
