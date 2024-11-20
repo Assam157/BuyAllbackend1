@@ -1,6 +1,5 @@
  # Use PHP 8.1 CLI as the base image
-FROM php:8.1-cli
-
+ FROM php:8.2-fpm
 # Install system dependencies, curl, unzip, and libraries required by Composer
 RUN apt-get update && apt-get install -y curl unzip libpng-dev libjpeg-dev libfreetype6-dev
 
